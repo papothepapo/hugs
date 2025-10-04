@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hugging Face Access</title>
+    <title>Hugging Face Access Portal</title>
     <style>
         * {
             margin: 0;
@@ -41,12 +41,34 @@
             font-size: 1.8rem;
         }
         
-        .info {
-            font-size: 0.9rem;
-            color: #888;
+        .access-methods {
+            display: flex;
+            gap: 10px;
         }
         
-        .iframe-container {
+        .method-btn {
+            background: #ffeb3b;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .method-btn:hover {
+            background: #fdd835;
+            transform: translateY(-1px);
+        }
+        
+        .method-btn.active {
+            background: #8B00FF;
+            color: white;
+        }
+        
+        .content-area {
             height: calc(100vh - 65px);
             width: 100%;
             position: relative;
@@ -58,6 +80,26 @@
             height: 100%;
             border: none;
             display: block;
+        }
+        
+        .proxy-container {
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .proxy-info {
+            background: #2d2d2d;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .proxy-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
         }
         
         .loading {
@@ -95,6 +137,15 @@
             line-height: 1.6;
         }
         
+        .error-message ul {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        
+        .error-message li {
+            margin-bottom: 10px;
+        }
+        
         .retry-btn {
             background: #ffeb3b;
             color: #000;
@@ -103,7 +154,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.3s;
+            margin-right: 10px;
         }
         
         .retry-btn:hover {
@@ -137,22 +188,111 @@
         .control-btn:hover {
             background: rgba(0, 0, 0, 0.9);
         }
+        
+        .url-input-container {
+            display: none;
+            background: #2d2d2d;
+            padding: 15px;
+            border-top: 1px solid #444;
+        }
+        
+        .url-input-container.active {
+            display: block;
+        }
+        
+        .url-input-wrapper {
+            display: flex;
+            gap: 10px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .url-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #444;
+            background: #1a1a1a;
+            color: white;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .navigate-btn {
+            background: #8B00FF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .navigate-btn:hover {
+            background: #6B00CC;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Hugging Face Access</h1>
-        <div class="info">Proxy Access via GitHub Pages</div>
+        <h1>Hugging Face Access Portal</h1>
+        <div class="access-methods">
+            <button class="method-btn active" onclick="switchMethod('direct')">Direct</button>
+            <button class="method-btn" onclick="switchMethod('proxy')">Proxy</button>
+            <button class="method-btn" onclick="switchMethod('textise')">Textise</button>
+            <button class="method-btn" onclick="switchMethod('browser')">Browser</button>
+        </div>
     </div>
     
-    <div class="iframe-container">
-        <iframe 
-            id="huggingframe"
-            src="https://huggingface.co"
-            title="Hugging Face"
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
-            loading="lazy"
-        ></iframe>
+    <div class="content-area">
+        <!-- Direct iframe method -->
+        <div id="directContainer">
+            <iframe 
+                id="huggingframe"
+                src="https://huggingface.co"
+                title="Hugging Face"
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation allow-modals"
+                loading="lazy"
+            ></iframe>
+        </div>
+        
+        <!-- Proxy method -->
+        <div id="proxyContainer" class="proxy-container">
+            <div class="proxy-info">
+                <strong>Proxy Mode:</strong> Accessing Hugging Face via proxy server
+            </div>
+            <iframe 
+                id="proxyFrame"
+                class="proxy-frame"
+                src=""
+                title="Hugging Face Proxy"
+            ></iframe>
+        </div>
+        
+        <!-- Textise method (simplified text version) -->
+        <div id="textiseContainer" class="proxy-container">
+            <div class="proxy-info">
+                <strong>Text Mode:</strong> Simplified text-only view
+            </div>
+            <iframe 
+                id="textiseFrame"
+                class="proxy-frame"
+                src=""
+                title="Hugging Face Text"
+            ></iframe>
+        </div>
+        
+        <!-- Browser method (using textise dot iitty) -->
+        <div id="browserContainer" class="proxy-container">
+            <div class="proxy-info">
+                <strong>Browser Mode:</strong> Alternative browser access
+            </div>
+            <iframe 
+                id="browserFrame"
+                class="proxy-frame"
+                src=""
+                title="Hugging Face Browser"
+            ></iframe>
+        </div>
         
         <div class="loading" id="loading">
             <p>Loading Hugging Face...</p>
@@ -160,72 +300,257 @@
         
         <div class="error-message" id="error">
             <h2>Unable to Load Hugging Face</h2>
-            <p>The iframe could not load Hugging Face. This might be due to network restrictions or Hugging Face's security policies preventing iframe embedding.</p>
-            <button class="retry-btn" onclick="retryLoad()">Retry</button>
+            <p>Hugging Face cannot be loaded in an iframe due to security restrictions. Here are some alternatives:</p>
+            <ul>
+                <li><strong>Direct Access:</strong> Click the "Open in New Tab" button below</li>
+                <li><strong>Proxy Method:</strong> Try the proxy button above (if available)</li>
+                <li><strong>Text Mode:</strong> Use text-only mode for basic access</li>
+                <li><strong>VPN:</strong> Consider using a VPN service</li>
+            </ul>
+            <div>
+                <button class="retry-btn" onclick="retryLoad()">Retry</button>
+                <button class="retry-btn" onclick="openInNewTab()">Open in New Tab</button>
+            </div>
+        </div>
+        
+        <div class="url-input-container" id="urlInputContainer">
+            <div class="url-input-wrapper">
+                <input type="text" class="url-input" id="customUrl" placeholder="Enter Hugging Face URL or search query...">
+                <button class="navigate-btn" onclick="navigateToUrl()">Navigate</button>
+            </div>
         </div>
     </div>
     
     <div class="controls">
+        <button class="control-btn" onclick="toggleUrlInput()" title="Navigate">🔍</button>
         <button class="control-btn" onclick="reloadFrame()" title="Reload">↻</button>
         <button class="control-btn" onclick="openInNewTab()" title="Open in New Tab">⧉</button>
     </div>
     
     <script>
-        const iframe = document.getElementById('huggingframe');
+        const containers = {
+            direct: document.getElementById('directContainer'),
+            proxy: document.getElementById('proxyContainer'),
+            textise: document.getElementById('textiseContainer'),
+            browser: document.getElementById('browserContainer')
+        };
+        
+        const frames = {
+            direct: document.getElementById('huggingframe'),
+            proxy: document.getElementById('proxyFrame'),
+            textise: document.getElementById('textiseFrame'),
+            browser: document.getElementById('browserFrame')
+        };
+        
         const loading = document.getElementById('loading');
         const error = document.getElementById('error');
+        const urlInputContainer = document.getElementById('urlInputContainer');
+        const customUrl = document.getElementById('customUrl');
+        
+        let currentMethod = 'direct';
         let loadTimeout;
         
-        // Show loading on initial load
-        loading.style.display = 'block';
+        // Proxy servers to try
+        const proxyServers = [
+            'https://r.jina.ai/http://huggingface.co',
+            'https://r.jina.ai/http://www.huggingface.co',
+            'https://r.jina.ai/http://huggingface.co/models',
+            'https://r.jina.ai/http://huggingface.co/datasets'
+        ];
         
-        iframe.onload = function() {
-            clearTimeout(loadTimeout);
-            loading.style.display = 'none';
-            error.style.display = 'none';
-        };
+        let currentProxyIndex = 0;
         
-        iframe.onerror = function() {
-            clearTimeout(loadTimeout);
-            loading.style.display = 'none';
-            error.style.display = 'block';
-        };
+        // Initialize
+        showLoading();
+        frames.direct.onload = handleFrameLoad;
+        frames.direct.onerror = handleFrameError;
         
-        // Fallback timeout in case onload doesn't fire
         loadTimeout = setTimeout(() => {
-            loading.style.display = 'none';
-            error.style.display = 'block';
+            if (currentMethod === 'direct') {
+                handleFrameError();
+            }
         }, 10000);
         
-        function retryLoad() {
-            error.style.display = 'none';
-            loading.style.display = 'block';
-            iframe.src = iframe.src;
+        function handleFrameLoad() {
+            clearTimeout(loadTimeout);
+            hideLoading();
+            hideError();
+        }
+        
+        function handleFrameError() {
+            clearTimeout(loadTimeout);
+            hideLoading();
+            showError();
+        }
+        
+        function switchMethod(method) {
+            // Hide all containers
+            Object.values(containers).forEach(container => {
+                container.style.display = 'none';
+            });
+            
+            // Update active button
+            document.querySelectorAll('.method-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Show selected container
+            containers[method].style.display = method === 'direct' ? 'block' : 'flex';
+            currentMethod = method;
+            
+            // Load appropriate source
+            showLoading();
+            
+            switch(method) {
+                case 'direct':
+                    frames.direct.src = 'https://huggingface.co';
+                    frames.direct.onload = handleFrameLoad;
+                    frames.direct.onerror = handleFrameError;
+                    break;
+                    
+                case 'proxy':
+                    // Try different proxy servers
+                    frames.proxy.src = proxyServers[currentProxyIndex];
+                    frames.proxy.onload = () => {
+                        hideLoading();
+                        hideError();
+                    };
+                    frames.proxy.onerror = () => {
+                        currentProxyIndex = (currentProxyIndex + 1) % proxyServers.length;
+                        frames.proxy.src = proxyServers[currentProxyIndex];
+                    };
+                    break;
+                    
+                case 'textise':
+                    // Use textise dot iitty or textise dot net
+                    frames.textise.src = 'https://r.jina.ai/http://huggingface.co';
+                    frames.textise.onload = () => {
+                        hideLoading();
+                        hideError();
+                    };
+                    frames.textise.onerror = () => {
+                        frames.textise.src = 'https://r.jina.ai/http://textise.net/showtext.aspx?strURL=https://huggingface.co';
+                    };
+                    break;
+                    
+                case 'browser':
+                    // Use textise dot iitty as a browser
+                    frames.browser.src = 'https://r.jina.ai/http://cc.bingj.com/cache.aspx?d=503-9228-5483&w=86a7c6993b4d4f5f5f5f5f5f5f5f5f5f&u=huggingface.co';
+                    frames.browser.onload = () => {
+                        hideLoading();
+                        hideError();
+                    };
+                    frames.browser.onerror = handleFrameError;
+                    break;
+            }
             
             loadTimeout = setTimeout(() => {
-                loading.style.display = 'none';
-                error.style.display = 'block';
-            }, 10000);
+                hideLoading();
+                if (method !== 'proxy') {
+                    showError();
+                }
+            }, 8000);
+        }
+        
+        function showLoading() {
+            loading.style.display = 'block';
+        }
+        
+        function hideLoading() {
+            loading.style.display = 'none';
+        }
+        
+        function showError() {
+            error.style.display = 'block';
+        }
+        
+        function hideError() {
+            error.style.display = 'none';
+        }
+        
+        function retryLoad() {
+            hideError();
+            showLoading();
+            
+            if (currentMethod === 'direct') {
+                frames.direct.src = frames.direct.src;
+            } else if (currentMethod === 'proxy') {
+                currentProxyIndex = (currentProxyIndex + 1) % proxyServers.length;
+                frames.proxy.src = proxyServers[currentProxyIndex];
+            } else {
+                frames[currentMethod].src = frames[currentMethod].src;
+            }
+            
+            loadTimeout = setTimeout(() => {
+                hideLoading();
+                showError();
+            }, 8000);
         }
         
         function reloadFrame() {
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            iframe.src = 'https://huggingface.co';
+            if (currentMethod === 'direct') {
+                frames.direct.src = 'https://huggingface.co';
+            } else {
+                frames[currentMethod].src = frames[currentMethod].src;
+            }
+            showLoading();
             
             loadTimeout = setTimeout(() => {
-                loading.style.display = 'none';
-                error.style.display = 'block';
-            }, 10000);
+                hideLoading();
+                if (currentMethod !== 'proxy') {
+                    showError();
+                }
+            }, 8000);
         }
         
         function openInNewTab() {
             window.open('https://huggingface.co', '_blank');
         }
         
-        // Handle potential X-Frame-Options blocking
-        window.addEventListener('message', function(event) {
-            // You can add message handling here if needed
+        function toggleUrlInput() {
+            urlInputContainer.classList.toggle('active');
+            if (urlInputContainer.classList.contains('active')) {
+                customUrl.focus();
+            }
+        }
+        
+        function navigateToUrl() {
+            let url = customUrl.value.trim();
+            if (!url) return;
+            
+            // If it's not a full URL, treat it as a search
+            if (!url.startsWith('http')) {
+                url = `https://huggingface.co/spaces?search=${encodeURIComponent(url)}`;
+            }
+            
+            if (currentMethod === 'direct') {
+                frames.direct.src = url;
+            } else if (currentMethod === 'proxy') {
+                frames.proxy.src = `https://r.jina.ai/http://${url.replace('https://', '')}`;
+            } else if (currentMethod === 'textise') {
+                frames.textise.src = `https://r.jina.ai/http://${url.replace('https://', '')}`;
+            } else {
+                frames.browser.src = url;
+            }
+            
+            showLoading();
+            urlInputContainer.classList.remove('active');
+            customUrl.value = '';
+            
+            loadTimeout = setTimeout(() => {
+                hideLoading();
+                if (currentMethod !== 'proxy') {
+                    showError();
+                }
+            }, 8000);
+        }
+        
+        // Handle Enter key in URL input
+        customUrl.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                navigateToUrl();
+            }
         });
     </script>
 </body>
