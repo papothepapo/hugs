@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hugging Face Access</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0f0f0f;
+            color: #ffffff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header h1::before {
+            content: "🤗";
+            font-size: 1.8rem;
+        }
+        
+        .info {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        .iframe-container {
+            height: calc(100vh - 65px);
+            width: 100%;
+            position: relative;
+            background: #ffffff;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+            display: none;
+        }
+        
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            padding: 30px;
+            background: #f8f8f8;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: none;
+            color: #333;
+            max-width: 500px;
+        }
+        
+        .error-message h2 {
+            margin-bottom: 15px;
+            color: #d32f2f;
+        }
+        
+        .error-message p {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .retry-btn {
+            background: #ffeb3b;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        
+        .retry-btn:hover {
+            background: #fdd835;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        
+        .control-btn {
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: rgba(0, 0, 0, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Hugging Face Access</h1>
+        <div class="info">Proxy Access via GitHub Pages</div>
+    </div>
+    
+    <div class="iframe-container">
+        <iframe 
+            id="huggingframe"
+            src="https://huggingface.co"
+            title="Hugging Face"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation"
+            loading="lazy"
+        ></iframe>
+        
+        <div class="loading" id="loading">
+            <p>Loading Hugging Face...</p>
+        </div>
+        
+        <div class="error-message" id="error">
+            <h2>Unable to Load Hugging Face</h2>
+            <p>The iframe could not load Hugging Face. This might be due to network restrictions or Hugging Face's security policies preventing iframe embedding.</p>
+            <button class="retry-btn" onclick="retryLoad()">Retry</button>
+        </div>
+    </div>
+    
+    <div class="controls">
+        <button class="control-btn" onclick="reloadFrame()" title="Reload">↻</button>
+        <button class="control-btn" onclick="openInNewTab()" title="Open in New Tab">⧉</button>
+    </div>
+    
+    <script>
+        const iframe = document.getElementById('huggingframe');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        let loadTimeout;
+        
+        // Show loading on initial load
+        loading.style.display = 'block';
+        
+        iframe.onload = function() {
+            clearTimeout(loadTimeout);
+            loading.style.display = 'none';
+            error.style.display = 'none';
+        };
+        
+        iframe.onerror = function() {
+            clearTimeout(loadTimeout);
+            loading.style.display = 'none';
+            error.style.display = 'block';
+        };
+        
+        // Fallback timeout in case onload doesn't fire
+        loadTimeout = setTimeout(() => {
+            loading.style.display = 'none';
+            error.style.display = 'block';
+        }, 10000);
+        
+        function retryLoad() {
+            error.style.display = 'none';
+            loading.style.display = 'block';
+            iframe.src = iframe.src;
+            
+            loadTimeout = setTimeout(() => {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+            }, 10000);
+        }
+        
+        function reloadFrame() {
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            iframe.src = 'https://huggingface.co';
+            
+            loadTimeout = setTimeout(() => {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+            }, 10000);
+        }
+        
+        function openInNewTab() {
+            window.open('https://huggingface.co', '_blank');
+        }
+        
+        // Handle potential X-Frame-Options blocking
+        window.addEventListener('message', function(event) {
+            // You can add message handling here if needed
+        });
+    </script>
+</body>
+</html>
